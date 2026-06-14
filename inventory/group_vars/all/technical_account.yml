@@ -1,0 +1,13 @@
+---
+inv_all_technical_accounts:
+  tech_user:
+    username: tech_user
+    comment: "Użytkownik techniczny ansible"
+    shell: /bin/bash
+    system_groups:
+      - technical_accounts
+    public_ssh_key: "{{ inv_secret_tech_user_public_ssh_key }}"
+    private_ssh_key: "{{ inv_secret_tech_user_private_ssh_key }}"
+    authorized_keys:
+      - authorized_key: "{{ inv_secret_tech_user_public_ssh_key }}"
+        state: present

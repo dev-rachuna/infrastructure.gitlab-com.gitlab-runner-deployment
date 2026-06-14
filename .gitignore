@@ -1,0 +1,7 @@
+playbooks/roles/install-packages
+playbooks/roles/set-hostname
+playbooks/roles/set-timezone
+playbooks/roles/ssh-hardening
+playbooks/roles/sudo
+playbooks/roles/users-management
+playbooks/roles/certificates

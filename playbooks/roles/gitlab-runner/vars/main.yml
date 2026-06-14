@@ -1,0 +1,10 @@
+---
+var_gitlab_runner_url: https://gitlab-runner-downloads.s3.amazonaws.com/latest/alpine/gitlab-runner-linux-amd64
+var_self_signed_repository_key: https://packages.gitlab.com/runner/gitlab-runner/gpgkey
+var_gitlab_runner_cache_nfs_packages:
+  debian:
+    - nfs-common
+  redhat:
+    - nfs-utils
+  alpine:
+    - nfs-utils

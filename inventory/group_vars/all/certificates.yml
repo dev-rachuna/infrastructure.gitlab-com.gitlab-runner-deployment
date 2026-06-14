@@ -1,0 +1,20 @@
+---
+inv_certificates_vault_addr: https://vault.rachuna.dev
+
+inv_certificates_bundle_paths:
+  - /etc/gitlab-runner/ca.crt
+
+inv_enabled_generate_certificates: false
+
+inv_certificates:
+  ca_cert:
+    name: rachuna-net-root-ca
+    url: "{{ inv_certificates_vault_addr }}/v1/pki-root/ca/pem"
+  int_prod:
+    name: rachuna-net-int-prod
+    url: "{{ inv_certificates_vault_addr }}/v1/pki-int-prod/ca/pem"
+  int_test:
+    name: rachuna-net-int-test
+    url: "{{ inv_certificates_vault_addr }}/v1/pki-int-test/ca/pem"
+
+inv_tls_certificates: []

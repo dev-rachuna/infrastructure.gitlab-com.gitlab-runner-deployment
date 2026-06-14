@@ -1,0 +1,35 @@
+---
+- name: "Install NFS client utilities"
+  ansible.builtin.package:
+    name: "{{ in_gitlab_runner_cache_nfs.packages | default(var_gitlab_runner_cache_nfs_packages.get(ansible_facts.os_family | lower, [])) }}"
+    state: present
+  when:
+    - in_gitlab_runner_cache_nfs.enabled | default(false)
+    - (in_gitlab_runner_cache_nfs.packages | default([])) | length > 0
+      or (var_gitlab_runner_cache_nfs_packages.get(ansible_facts.os_family | lower, [])) | length > 0
+
+- name: "Validate NFS cache source is set"
+  ansible.builtin.assert:
+    that:
+      - in_gitlab_runner_cache_nfs.src is defined
+      - in_gitlab_runner_cache_nfs.src | length > 0
+    fail_msg: "Set in_gitlab_runner_cache_nfs.src to the NFS export (e.g. 10.0.0.1:/exports/gitlab-cache)."
+  when: in_gitlab_runner_cache_nfs.enabled | default(false)
+
+- name: "Ensure cache directory exists"
+  ansible.builtin.file:
+    path: "{{ in_gitlab_runner_cache_nfs.path | default('/cache') }}"
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+  when: in_gitlab_runner_cache_nfs.enabled | default(false)
+
+- name: "Mount NFS volume for GitLab Runner cache"
+  ansible.posix.mount:
+    src: "{{ in_gitlab_runner_cache_nfs.src }}"
+    path: "{{ in_gitlab_runner_cache_nfs.path | default('/cache') }}"
+    fstype: "{{ in_gitlab_runner_cache_nfs.fstype | default('nfs') }}"
+    opts: "{{ in_gitlab_runner_cache_nfs.opts | default('rw,sync') }}"
+    state: mounted
+  when: in_gitlab_runner_cache_nfs.enabled | default(false)

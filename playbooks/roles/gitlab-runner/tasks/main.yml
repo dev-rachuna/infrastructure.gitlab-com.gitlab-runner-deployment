@@ -1,0 +1,22 @@
+---
+- name: "Include Install packages tasks"
+  include_tasks: "install-{{ ansible_facts.os_family | lower }}.yml"
+  when: in_install_docker
+
+- name: "Include tasks to mount NFS cache volume"
+  include_tasks: "mount-cache-nfs.yml"
+  when: in_gitlab_runner_cache_nfs.enabled | default(false)
+
+- name: "Include tasks Register gitlab runner"
+  include_tasks: "register-gitlab-runner.yml"
+  loop: "{{ in_gitlab_runner_configuration.runners }}"
+  loop_control:
+    label: "{{ item.name }}"
+  when:
+    - item.register_runner.id is not defined
+    - item.register_runner.token is not defined
+    - item.register_runner.id | default(None) is none
+    - item.register_runner.token | default('') | length == 0
+
+- name: "Include tasks Configuration gitlab-runner"
+  include_tasks: config-gitlab-runner.yml

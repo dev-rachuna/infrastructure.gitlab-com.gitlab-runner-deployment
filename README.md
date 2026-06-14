@@ -1,93 +1,334 @@
-# gitlab-runner-deployment
+# <img src=".gitlab/ansible.png" alt="ansible" height="30"/> Ansible – GitLab Runner Infrastructure
 
-Instalacja gitlab-runner za pomocą Ansible
+::include{file=.gitlab/badges.md}
 
-## Getting started
+Repozytorium automatyzacji i konfiguracji infrastruktury GitLab Runner przy użyciu **Ansible**. 
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+Projekt automatyzuje instalację, konfigurację i hardening trzech maszyn GitLab Runner (`gitlab-runner-1002`, `gitlab-runner-1003`, `gitlab-runner-1004`) dla domeny **dev.rachuna**.
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+---
 
-## Add your files
+## 🎯 Cel Projektu
 
-* [Create](https://docs.gitlab.com/user/project/repository/web_editor/#create-a-file) or [upload](https://docs.gitlab.com/user/project/repository/web_editor/#upload-a-file) files
-* [Add files using the command line](https://docs.gitlab.com/topics/git/add_files/#add-files-to-a-git-repository) or push an existing Git repository with the following command:
+Standaryzacja i automatyzacja infrastruktury CI/CD runner machines poprzez Infrastructure-as-Code (IaC) podejście:
 
+- ✅ **Hardening bezpieczeństwa** – SSH, sudo, users, firewall rules
+- ✅ **Zarządzanie konfiguracją** – timezone, hostname, locale, packages
+- ✅ **Automatyzacja GitLab Runner** – instalacja, rejestracja, cache NFS
+- ✅ **Zarządzanie certyfikatami TLS** – integracja z HashiCorp Vault
+- ✅ **Wersjonowanie infrastruktury** – wszystko w Git (Conventional Commits)
+
+---
+
+## 📋 Wymagania
+
+### Minimum
+- **Ansible** 2.9+ (rekomendacja: 2.11+)
+- **Python 3.6+** na maszynie kontrolnej
+- **SSH dostęp** do target hostów
+
+### Opcjonalnie
+- **Vault** (HashiCorp) – dla zarządzania certyfikatami/sekretami
+- **Molecule** – dla testowania roles
+
+### Instalacja Ansible
+
+```bash
+# macOS (Homebrew)
+brew install ansible
+
+# Ubuntu/Debian
+sudo apt-get install ansible
+
+# pip (zalecane)
+pip install ansible>=2.11
 ```
-cd existing_repo
-git remote add origin https://gitlab.com/dev.rachuna/infrastructure/gitlab-com/gitlab-runner-deployment.git
-git branch -M main
-git push -uf origin main
+
+---
+
+## 🚀 Quick Start
+
+### 1. Klonuj repozytorium
+
+```bash
+git clone https://gitlab.com/dev.rachuna/infrastructure/gitlab-com/gitlab-runner-deployment.git
+cd gitlab-runner-deployment
 ```
 
-## Integrate with your tools
+### 2. Instalacja external roles
 
-* [Set up project integrations](https://gitlab.com/dev.rachuna/infrastructure/gitlab-com/gitlab-runner-deployment/-/settings/integrations)
+```bash
+ansible-galaxy role install -f -r requirements.yml -p playbooks/roles
+```
 
-## Collaborate with your team
+### 3. Test połączenia z hostami
 
-* [Invite team members and collaborators](https://docs.gitlab.com/user/project/members/)
-* [Create a new merge request](https://docs.gitlab.com/user/project/merge_requests/creating_merge_requests/)
-* [Automatically close issues from merge requests](https://docs.gitlab.com/user/project/issues/managing_issues/#closing-issues-automatically)
-* [Enable merge request approvals](https://docs.gitlab.com/user/project/merge_requests/approvals/)
-* [Set auto-merge](https://docs.gitlab.com/user/project/merge_requests/auto_merge/)
+```bash
+ansible-playbook playbooks/test_connection.yml -i inventory/hosts.yml
+```
 
-## Test and Deploy
+### 4. Dry-run (test bez zmian)
 
-Use the built-in continuous integration in GitLab.
+```bash
+ansible-playbook playbooks/install.yml -i inventory/hosts.yml --check
+```
 
-* [Get started with GitLab CI/CD](https://docs.gitlab.com/ci/quick_start/)
-* [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/user/application_security/sast/)
-* [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/topics/autodevops/requirements/)
-* [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/user/clusters/agent/)
-* [Set up protected environments](https://docs.gitlab.com/ci/environments/protected_environments/)
+### 5. Pełna instalacja
 
-***
+```bash
+ansible-playbook playbooks/install.yml -i inventory/hosts.yml
+```
 
-# Editing this README
+---
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
+## 📁 Struktura Projektu
 
-## Suggestions for a good README
+```bash
+.
+├── playbooks/
+│   ├── install.yml                     # ⭐ Główny playbook
+│   ├── test_connection.yml             # Test połączenia
+│   └── roles/
+│       ├── gitlab-runner/              # Local role: GitLab Runner setup
+│       ├── certificates/               # Local role: Certificate handling
+│       └── [external roles gitignored]
+├── inventory/
+│   ├── hosts.yml                       # Definicja hostów
+│   ├── group_vars/
+│   │   └── all/                        # Global variables
+│   │       ├── main.yml
+│   │       ├── certificates.yml
+│   │       ├── users_accont.yml
+│   │       ├── technical_account.yml
+│   │       ├── groups.yml
+│   │       ├── locale.yml
+│   │       └── sshd_config.yml
+│   └── host_vars/
+│       ├── gitlab-runner-1002/
+│       ├── gitlab-runner-1003/
+│       └── gitlab-runner-1004/
+├── requirements.yml                    # External roles (versioned)
+├── .gitignore                          # External roles excluded
+├── README.md                           # Ten plik
+├── CONTRIBUTING.md                     # Contribution guidelines
+└── LICENSE                             # MIT License
+```
 
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
+---
 
-## Name
-Choose a self-explaining name for your project.
+## 🏗️ Architektura
 
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
+### Role Stack (w kolejności wykonania)
 
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
+| # | Role | Typ | Opis |
+|---|------|-----|------|
+| 1 | `set-timezone` | External | Ustawia timezone, locale, language |
+| 2 | `users-management` | External | Tworzy użytkowników, grupy, SSH keys |
+| 3 | `sudo` | External | Konfiguruje sudo policies |
+| 4 | `set-hostname` | External | Ustawia FQDN hostname |
+| 5 | `ssh-hardening` | External | Hardening konfiguracji SSH (sshd_config) |
+| 6 | `install-packages` | External | Instaluje pakiety (APT/DNF/APK) |
+| 7 | `certificates` | External | Zarządza certyfikatami TLS + Vault |
+| 8 | `gitlab-runner` | Local | Instaluje i rejestruje GitLab Runner |
 
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
+### Zmienne (Hierarchia Priorytetów)
 
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
+```bash
+Role defaults
+    ↓ overridden by
+Role vars/
+    ↓ overridden by
+group_vars/all/
+    ↓ overridden by
+group_vars/gitlab_runners/
+    ↓ overridden by
+host_vars/gitlab-runner-*/
+    ↓ overridden by
+Playbook vars:
+```
 
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
+---
 
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
+## ⚙️ Konfiguracja
 
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
+### Global Variables (`inventory/group_vars/all/main.yml`)
 
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
+```yaml
+inv_all_root_root_domain: rachuna.dev
+inv_all_timezone: "Europe/Warsaw"
+inv_all_locale: "en_US.UTF-8"
+inv_all_language: "en_US"
+inv_all_lc_all: "en_US.UTF-8"
+```
 
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
+### Runner-Specific Config (`inventory/group_vars/gitlab_runners/configuration.yml`)
 
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
+```yaml
+inv_gitlab_runner_cache_nfs:
+  path: /mnt/cache
+  server: nfs.rachuna.dev
 
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
+inv_host_gitlab_runner_configuration:
+  concurrent: 4
+  check_interval: 0
+  # ... więcej opcji
+```
 
-## License
-For open source projects, say how it is licensed.
+### Per-Host Override (`inventory/host_vars/gitlab-runner-1002/main.yml`)
 
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+```yaml
+fqdn: gitlab-runner-1002.rachuna.dev
+```
+
+---
+
+## 📝 Użycie
+
+### Uruchomienie pełnego playbooku
+
+```bash
+ansible-playbook playbooks/install.yml -i inventory/hosts.yml
+```
+
+### Uruchomienie tylko jednego role'a
+
+```bash
+ansible-playbook playbooks/install.yml -i inventory/hosts.yml -t gitlab-runner
+```
+
+### Dry-run z verbose output
+
+```bash
+ansible-playbook playbooks/install.yml -i inventory/hosts.yml --check -vvv
+```
+
+### Syntax check
+
+```bash
+ansible-playbook playbooks/install.yml --syntax-check
+```
+
+### Listy tasków bez wykonania
+
+```bash
+ansible-playbook playbooks/install.yml --list-tasks
+```
+
+### Custom user/password
+
+```bash
+ansible-playbook playbooks/install.yml -i inventory/hosts.yml -u ubuntu -k -K
+```
+
+---
+
+## 🔧 Dodawanie Nowego Runner'a
+
+1. **Dodaj do inventory:**
+
+   ```yaml
+   # inventory/hosts.yml
+   gitlab_runners:
+     children:
+       nodes:
+         hosts:
+           gitlab-runner-1028:  # nowy host
+   ```
+
+2. **Utwórz host_vars:**
+
+   ```bash
+   mkdir -p inventory/host_vars/gitlab-runner-1028
+   ```
+
+3. **Konfiguruj hostname:**
+
+   ```yaml
+   # inventory/host_vars/gitlab-runner-1028/main.yml
+   fqdn: gitlab-runner-1028.rachuna.dev
+   ```
+
+4. **Konfiguruj runner:**
+
+   ```yaml
+   # inventory/host_vars/gitlab-runner-1028/gitlab-runner.yml
+   inv_host_gitlab_runner_configuration:
+     concurrent: 4
+     # ... reszta konfiguracji
+   ```
+
+5. **Uruchom playbook:**
+
+   ```bash
+   ansible-playbook playbooks/install.yml -i inventory/hosts.yml
+   ```
+
+---
+
+## 🧪 Testowanie
+
+### Test połączenia
+
+```bash
+ansible-playbook playbooks/test_connection.yml -i inventory/hosts.yml
+```
+
+### Inventory validation
+
+```bash
+ansible-inventory -i inventory/hosts.yml --list
+ansible-inventory -i inventory/hosts.yml --host gitlab-runner-1002
+```
+
+### Check mode (dry-run)
+
+```bash
+ansible-playbook playbooks/install.yml -i inventory/hosts.yml --check
+```
+
+### Verbose output
+
+```bash
+# -v = minimal verbose
+# -vv = more verbose
+# -vvv = debug level
+ansible-playbook playbooks/install.yml -i inventory/hosts.yml -vvv
+```
+
+---
+
+## 🔐 Bezpieczeństwo
+
+### Vault Integration
+
+- Certyfikaty mogą być przechowywane w **HashiCorp Vault**
+- Ustaw `inv_certificates_vault_addr` w inventory
+- Runner musi mieć dostęp do Vault (via IAM lub token)
+
+### SSH Hardening
+
+- Role `ssh-hardening` modyfikuje `/etc/ssh/sshd_config`
+- Wyłącza root login, słabe algorytmy, itp.
+- **Ostrzeżenie**: Testuj w safe environment przed produkcją
+
+### Secrets Management
+
+- **Nigdy** nie commituj credentials, tokens, czy secrets do repozytorium
+- Używaj `ansible-vault` dla sensitive data
+- Przechowuj tokeny w environment variables lub Vault
+
+---
+
+## 📦 External Roles (z requirements.yml)
+
+Wszystkie external roles są instalowane z pliku `requirements.yml` z GitLab repo:
+
+```bash
+https://gitlab.com/dev.rachuna/artifacts/ansible-roles/
+```
+
+**Gitignore**: External roles NIE są commitowane do tego repo (zobacz `.gitignore`)
+
+---
+
+::include{file=.gitlab/footer.md}

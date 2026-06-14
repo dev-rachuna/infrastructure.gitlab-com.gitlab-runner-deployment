@@ -1,0 +1,14 @@
+---
+- name: "Create configuration /etc/gitlab-runner/config.toml"
+  template:
+    src: config.toml.j2
+    dest: /etc/gitlab-runner/config.toml
+    owner: root
+    group: gitlab-runner
+    mode: '0640'
+  notify: "Restart gitlab-runner"
+
+- name: "Enable gitlab-runner"
+  service:
+    name: gitlab-runner
+    state: started

@@ -1,0 +1,8 @@
+---
+ansible_host: "gitlab-runner-1002.{{ inv_all_root_root_domain }}"
+ansible_host_ip: 10.3.2.2
+fqdn: "gitlab-runner-1002.{{ inv_all_root_root_domain }}"
+ansible_user: "{{ lookup('env', 'ANSIBLE_USER') }}"
+ansible_become_pass: "{{ lookup('env', 'ANSIBLE_PASSWORD') }}"
+inv_disable_set_hostname: true
+ansible_python_interpreter: /usr/bin/python3.14

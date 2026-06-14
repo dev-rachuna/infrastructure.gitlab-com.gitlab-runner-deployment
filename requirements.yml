@@ -1,0 +1,35 @@
+---
+- name: "set-timezone"
+  src: "https://gitlab.com/dev.rachuna/artifacts/ansible-roles/set-timezone.git"
+  scm: git
+  version: 1.0.0
+
+- name: "users-management"
+  src: "https://gitlab.com/dev.rachuna/artifacts/ansible-roles/users-management.git"
+  scm: git
+  version: 1.0.0
+
+- name: "sudo"
+  src: "https://gitlab.com/dev.rachuna/artifacts/ansible-roles/sudo.git"
+  scm: git
+  version: 1.0.0
+
+- name: "set-hostname"
+  src: "https://gitlab.com/dev.rachuna/artifacts/ansible-roles/set-hostname.git"
+  scm: git
+  version: 1.0.0
+
+- name: "ssh-hardening"
+  src: "https://gitlab.com/dev.rachuna/artifacts/ansible-roles/ssh-hardening.git"
+  scm: git
+  version: 1.0.0
+
+- name: "install-packages"
+  src: "https://gitlab.com/dev.rachuna/artifacts/ansible-roles/install-packages.git"
+  scm: git
+  version: 1.0.0
+
+- name: "certificates"
+  src: "https://gitlab.com/dev.rachuna/artifacts/ansible-roles/certificates.git"
+  scm: git
+  version: 1.1.0

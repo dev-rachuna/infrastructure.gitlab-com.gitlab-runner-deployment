@@ -1,0 +1,62 @@
+---
+- name: "Install gitlab-runner"
+  block:
+    - name: "Install dependencies"
+      retries: 3
+      delay: 60
+      ansible.builtin.apt:
+        name:
+          - gpg
+          - wget
+          - apt-transport-https
+          - ca-certificates
+          - bash
+        state: present
+        update_cache: true
+
+    - name: "Download and add repository key (Keyring Method)"
+      ansible.builtin.shell: |
+        wget -O - {{ var_self_signed_repository_key }} | gpg --dearmor -o /usr/share/keyrings/runner_gitlab-runner-archive-keyring.gpg
+      args:
+        creates: "/usr/share/keyrings/runner_gitlab-runner-archive-keyring.gpg"
+
+    - name: "Add Repositories"
+      apt_repository:
+        repo: "{{ item }}"
+        filename: "runner_gitlab-runner"
+        state: "present"
+        update_cache: true
+      loop:
+        # - "deb [signed-by=/usr/share/keyrings/runner_gitlab-runner-archive-keyring.gpg] https://packages.gitlab.com/runner/gitlab-runner/ubuntu/ {{ ansible_facts.distribution_release | lower }} main"
+        # - "deb-src [signed-by=/usr/share/keyrings/runner_gitlab-runner-archive-keyring.gpg] https://packages.gitlab.com/runner/gitlab-runner/ubuntu/ {{ ansible_facts.distribution_release | lower }} main"
+        - "deb [signed-by=/usr/share/keyrings/runner_gitlab-runner-archive-keyring.gpg] https://packages.gitlab.com/runner/gitlab-runner/ubuntu/ noble main"
+        - "deb-src [signed-by=/usr/share/keyrings/runner_gitlab-runner-archive-keyring.gpg] https://packages.gitlab.com/runner/gitlab-runner/ubuntu/ noble main"
+    - name: "Install GitLab Runner"
+      ansible.builtin.apt:
+        name: gitlab-runner
+        state: present
+
+  rescue:
+    - name: "Print error if GitLab Runner installation fails"
+      ansible.builtin.debug:
+        msg: "❌  GitLab Runner installation failed! Check logs."
+
+- name: "Install and Configure Docker"
+  block:
+    - name: "Install Docker"
+      ansible.builtin.apt:
+        name:
+          - docker.io
+        state: present
+
+    - name: "Enable and start Docker service"
+      ansible.builtin.systemd:
+        name: docker
+        enabled: true
+        state: started
+
+  when: in_install_docker
+  rescue:
+    - name: "Print error if Docker installation fails"
+      ansible.builtin.debug:
+        msg: "❌  Docker installation failed! Check logs."

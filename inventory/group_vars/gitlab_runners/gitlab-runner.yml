@@ -1,0 +1,32 @@
+---
+inv_gitlab_runner_configuration:
+  concurrent: 100
+  check_interval: 0
+  shutdown_timeout: 0
+  session_timeout: 3600
+  runners:
+    - name: "{{ inventory_hostname }}.gitlab"
+      url: "https://gitlab.com"
+      register_runner:
+        id: 53317509
+        token: "{{ inv_secret_gitlab_runner_token }}"
+        register_gitlab_api_token: "{{ ivn_secret_gitlab_api_token }}"
+        description: "GitLab Runner for dev.rachuna"
+        tag_list: ["rachuna-dev"]
+        runner_type: "group_type"
+        group_id: 132728705
+        access_level: "not_protected"
+      executor: "docker"
+      docker:
+        tls_verify: false
+        image: "registry.gitlab.com/dev.rachuna/artifacts/containers/python:1.0.0"
+        privileged: true
+        disable_entrypoint_overwrite: false
+        oom_kill_disable: false
+        disable_cache: false
+        volumes:
+          - "/etc/ssl:/etc/ssl"
+          - "/cache:/cache"
+          - "/var/run/docker.sock:/var/run/docker.sock"
+        shm_size: 0
+        network_mode: "host"

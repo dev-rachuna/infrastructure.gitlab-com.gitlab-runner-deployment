@@ -1,0 +1,32 @@
+concurrent = {{ in_gitlab_runner_configuration.concurrent | default(1) }}
+check_interval = {{ in_gitlab_runner_configuration.check_interval | default(0) }}
+shutdown_timeout = {{ in_gitlab_runner_configuration.shutdown_timeout | default(0) }}
+
+[session_server]
+  session_timeout = {{ in_gitlab_runner_configuration.session_timeout | default(3600) }}
+
+{% for runner in in_gitlab_runner_configuration.runners %}
+[[runners]]
+  name = "{{ runner.name | default(ansible_host) }}"
+  url = "{{ runner.url | default('https://gitlab.com') }}"
+  token = "{{ runner.register_runner.token | default(registered_runner[runner.name].token, true) | trim }}"
+  token_expires_at = 0001-01-01T00:00:00Z
+  executor = "{{ runner.executor | default('docker') }}"
+  [runners.custom_build_dir]
+  [runners.cache]
+    MaxUploadedArchiveSize = 0
+    [runners.cache.s3]
+    [runners.cache.gcs]
+    [runners.cache.azure]
+  [runners.docker]
+    network_mode = "{{ runner.docker.network_mode | default('bridge') }}"
+    tls_verify = {{ runner.docker.tls_verify | default(false) | lower }}
+    image = "{{ runner.docker.image | default('alpine:latest') }}"
+    privileged = {{ runner.docker.privileged | default(false) | lower }}
+    disable_entrypoint_overwrite = {{ runner.docker.disable_entrypoint_overwrite | default(false) | lower }}
+    oom_kill_disable = {{ runner.docker.oom_kill_disable | default(false) | lower }}
+    disable_cache = {{ runner.docker.disable_cache | default(false) | lower }}
+    volumes = ["{{ runner.docker.volumes | default(['/cache']) | join('","') }}"]
+    shm_size = {{ runner.docker.shm_size | default(0) }}
+    network_mtu = {{ runner.docker.network_mtu | default(0) }}
+{% endfor %}

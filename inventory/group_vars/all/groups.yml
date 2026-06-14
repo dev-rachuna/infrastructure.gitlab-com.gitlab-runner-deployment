@@ -1,0 +1,8 @@
+---
+inv_all_groups:
+  - name: administrators
+  - name: technical_accounts
+
+inv_all_sudo_groups:
+  - administrators
+  - technical_accounts

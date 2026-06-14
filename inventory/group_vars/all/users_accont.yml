@@ -1,0 +1,20 @@
+---
+inv_all_user_accounts:
+  mrachuna:
+    username: mrachuna
+    comment: "Maciej Rachuna"
+    shell: /bin/bash
+    system_groups:
+      - administrators
+    authorized_keys:
+      - authorized_key: "{{ inv_secret_mrachuna_public_ssh_key }}"
+        state: present
+  dragoslawai:
+    username: dragoslawai
+    comment: "Dragosław AI"
+    shell: /bin/bash
+    system_groups:
+      - administrators
+    authorized_keys:
+      - authorized_key: "{{ inv_secret_dragoslawai_public_ssh_key }}"
+        state: present

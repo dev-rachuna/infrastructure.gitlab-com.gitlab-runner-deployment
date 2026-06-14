@@ -1,0 +1,68 @@
+---
+- name: "Install gitlab-runner"
+  block:
+    - name: "Install dependencies"
+      ansible.builtin.dnf:
+        name:
+          - curl
+          - bash
+          - ca-certificates
+          - git
+        state: present
+        update_cache: true
+
+    - name: "Add GitLab repository"
+      changed_when: false
+      ansible.builtin.shell: "curl -fsSL https://packages.gitlab.com/install/repositories/runner/gitlab-runner/script.rpm.sh | bash"
+      args:
+        creates: /etc/yum.repos.d/gitlab_runner.repo
+
+    - name: "Install GitLab Runner"
+      ansible.builtin.dnf:
+        name: gitlab-runner
+        state: present
+
+  rescue:
+    - name: "Print error if GitLab Runner installation fails"
+      ansible.builtin.debug:
+        msg: "❌  GitLab Runner installation failed! Check logs."
+
+- name: "Install and Configure Docker"
+  block:
+    - name: "Install Docker dependencies"
+      ansible.builtin.dnf:
+        name:
+          - yum-utils
+          - device-mapper-persistent-data
+          - lvm2
+          - curl
+          - gnupg2
+          - ca-certificates
+        state: present
+        update_cache: true
+
+    - name: "Add Docker repository"
+      ansible.builtin.shell: |
+        dnf config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+      args:
+        creates: /etc/yum.repos.d/docker-ce.repo
+
+    - name: "Install Docker"
+      ansible.builtin.dnf:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+        state: present
+
+    - name: "Enable and start Docker service"
+      ansible.builtin.systemd:
+        name: docker
+        enabled: true
+        state: started
+
+  when: in_install_docker
+  rescue:
+    - name: "Print error if Docker installation fails"
+      ansible.builtin.debug:
+        msg: "❌ Docker installation failed! Check logs."

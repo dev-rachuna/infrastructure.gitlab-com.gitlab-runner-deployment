@@ -1,0 +1,33 @@
+---
+galaxy_info:
+  role_name: deploy_gitlab_runner
+  namespace: pl_rachuna_net
+  author: "Maciej Rachuna"
+  description: "Ansible Role do automatyzacji instalacji i konfiguracji GitLab Runnerów."
+  license: MIT
+  min_ansible_version: 2.9
+
+  platforms:
+    - name: Debian
+      versions:
+        - all
+    - name: Ubuntu
+      versions:
+        - all
+    - name: Alpine
+      versions:
+        - all
+    - name: EL
+      versions:
+        - "7"
+        - "8"
+        - "9"
+
+  galaxy_tags:
+    - gitlab
+    - gitlab-runner
+    - ci
+    - ci-cd
+    - docker
+
+dependencies: []

@@ -1,0 +1,56 @@
+---
+- name: "Register new GitLab Runner in API"
+  block:
+    - name: "Register new GitLab Runner"
+      # no_log: true
+      run_once: true
+      uri:
+        url: "{{ item.url }}/api/v4/user/runners"
+        method: POST
+        headers:
+          PRIVATE-TOKEN: "{{ item.register_runner.register_gitlab_api_token }}"
+        body_format: json
+        body:
+          description: "{{ item.register_runner.description }}"
+          runner_type: "{{ item.register_runner.runner_type }}"
+          tag_list: "{{ item.register_runner.tag_list | join(',') }}"
+          group_id: "{{ item.register_runner.group_id | default(omit) }}"
+          project_id: "{{ item.register_runner.project_id | default(omit) }}"
+          run_untagged: "{{ item.register_runner.run_untagged | default(false) }}"
+          paused: "{{ item.register_runner.paused | default(false) }}"
+          locked: "{{ item.register_runner.locked | default(false) }}"
+          access_level: "{{ item.register_runner.access_level | default('not_protected') }}"
+          maximum_timeout: "{{ item.register_runner.maximum_timeout | default(3600) }}"
+          maintenance_note: "{{ item.register_runner.maintenance_note | default(omit) }}"
+        status_code: 201
+      register: gitlab_response
+
+    - name: "Print GitLab Runner registration id"
+      run_once: true
+      ansible.builtin.debug:
+        msg: "ID: {{ gitlab_response.json.id }}"
+      when: in_debug
+
+    - name: "Print GitLab Runner registration token"
+      run_once: true
+      ansible.builtin.debug:
+        msg: "Token: {{ gitlab_response.json.token }}"
+      when: in_debug
+
+    - name: "Set 'registered_runner' variable"
+      set_fact:
+        registered_runner: >-
+          {{
+            registered_runner | default({}) | combine(
+              { item.name: { 'id': gitlab_response.json.id, 'token': gitlab_response.json.token } }
+            )
+          }}
+
+  rescue:
+    - name: "Print GitLab Runner registration error"
+      failed_when: true
+      ansible.builtin.debug:
+        msg: "❌ ERROR: {{ item.json.error | default(item.msg, true) }}"
+      loop: "{{ gitlab_response.results | default([]) }}"
+      loop_control:
+        label: "{{ item.item.name }}"

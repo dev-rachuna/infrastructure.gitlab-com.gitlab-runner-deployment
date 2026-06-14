@@ -1,0 +1,42 @@
+---
+- name: "Install gitlab-runner"
+  block:
+    - name: "Install Gitlab Runner on Alpine"
+      ansible.builtin.apk:
+        name:
+          - curl
+          - bash
+          - ca-certificates
+          - git
+          - gitlab-runner
+        state: present
+        update_cache: true
+  rescue:
+    - name: "Print error if GitLab Runner installation fails"
+      ansible.builtin.debug:
+        msg: "❌ GitLab Runner installation failed! Check logs."
+
+- name: "Install and Configure docker"
+  block:
+    - name: "Install Docker on Alpine"
+      ansible.builtin.apk:
+        name:
+          - docker
+          - docker-cli
+        state: present
+        update_cache: true
+
+    - name: "Enable and start Docker service"
+      ansible.builtin.command: rc-update add docker default
+      changed_when: false
+
+    - name: "Start Docker now"
+      ansible.builtin.service:
+        name: docker
+        state: started
+
+  when: in_install_docker
+  rescue:
+    - name: "Print error if Docker installation fails"
+      ansible.builtin.debug:
+        msg: "❌  Docker installation failed! Check logs."

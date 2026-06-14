@@ -1,0 +1,7 @@
+---
+inv_gitlab_runner_cache_nfs:
+  enabled: true
+  src: "storage.rachuna.dev:/volume1/GITLAB_RUNNER_CACHE"
+  path: "/cache"
+  fstype: "nfs"
+  opts: "rw,soft,timeo=10,retrans=3,noatime"
